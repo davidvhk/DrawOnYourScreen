@@ -1,3 +1,8 @@
+# REMARK
+
+adapt code to work with version 42 and get the hot keys working after getting back from the extension
+all credits and thanks to https://codeberg.org/som 
+
 # Draw On Your Screen
 
 Start drawing with Super+Alt+D.
