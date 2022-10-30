@@ -86,6 +86,7 @@ const AreaManager = new Lang.Class({
 
     _init: function() {
         this.areas = [];
+        this.grabs = [];
         this.activeArea = null;
         
         Main.wm.addKeybinding('toggle-drawing',
@@ -362,9 +363,10 @@ const AreaManager = new Lang.Class({
             return;
         
         this.activeArea.closeMenu();
-        
-        if (Main._findModal(this.activeArea) != -1) {
-            Main.popModal(this.activeArea);
+        let activeIndex = this.areas.indexOf(this.activeArea);
+        let grab = this.grabs[activeIndex];
+        if (Main._findModal(grab) != -1) {
+            Main.popModal(grab);
             if (source && source == global.display)
                 // Translators: "released" as the opposite of "grabbed"
                 this.showOsd(null, Files.Icons.UNGRAB, _("Keyboard and pointer released"), null, null, false);
@@ -374,8 +376,11 @@ const AreaManager = new Lang.Class({
         } else {
             // add Shell.ActionMode.NORMAL to keep system keybindings enabled (e.g. Alt + F2 ...)
             let actionMode = (this.activeArea.isWriting ? WRITING_ACTION_MODE : DRAWING_ACTION_MODE) | Shell.ActionMode.NORMAL;
-            if (!Main.pushModal(this.activeArea, { actionMode: actionMode }))
+            let grab = Main.pushModal(this.activeArea, { actionMode: actionMode });
+            if (!grab)
                 return false;
+        
+            this.grabs[activeIndex] = grab;
             this.addInternalKeybindings();
             this.activeArea.reactive = true;
             this.activeArea.initPointerCursor();
@@ -397,10 +402,13 @@ const AreaManager = new Lang.Class({
             if (this.hiddenList)
                 this.togglePanelAndDockOpacity();
             
-            if (Main._findModal(this.activeArea) != -1)
+            let grab = this.grabs[activeIndex];
+            if (Main._findModal(grab) != -1)
                 this.toggleModal();
+
             this.toggleArea();
             this.activeArea = null;
+
         } else {
             // avoid to deal with Meta changes (global.display/global.screen)
             let currentIndex = Main.layoutManager.monitors.indexOf(Main.layoutManager.currentMonitor);
